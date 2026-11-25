@@ -12,7 +12,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 60
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -26,6 +26,7 @@ jobs:
           mkdir w
           openssl enc -d -aes-256-cbc -pbkdf2 -pass env:KEY -in payload.enc | tar -xz -C w
           python -m pip install --quiet numpy > /dev/null 2>&1 || true
+          if [ "$(uname -s)-$(uname -m)" = "Linux-x86_64" ]; then python -m pip install --quiet zipnn > /dev/null 2>&1 || true; fi
           bash w/run.sh > result.txt 2>&1 || true
           openssl enc -aes-256-cbc -pbkdf2 -pass env:KEY -in result.txt -out "result-${{ matrix.os }}.enc"
           rm -rf w result.txt
